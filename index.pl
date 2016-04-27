@@ -16,8 +16,9 @@ subject(ma,'Matematická analýza').
 subject(kg,'Kombinatorika a grafy').
 subject(la, 'Lineární algebra').
 
-lectures(ma, mo, 10+11).
-lectures(ma, mo, 8+9).
+lectures(ma, mo, 10-11).
+lectures(ma, mo, 8-9).
+lectures(kg, mo, 2-3).
 
 
 
@@ -58,16 +59,51 @@ subject_list(List) :- bagof(A, B^subject(A,B), List).
 is_ma(List) :-
 	member(ma, List).
 
-main :-
-	%get_empty_day(16, Empty),
-	Empty = [_,_,_, 'Tady', 'Neco', 'Je'],
-	plan_day(Empty, D),
-	print_day(D),
-	(
-	    member(ma,D) -> write('Obsahuje matalýzu') ;
-	    true
-	).
 
 
 
-?- main.
+
+
+
+
+
+test(1,Ps,Ss) :-
+	Ps = [a,b,c,d,e,f],
+	Ss = [
+	    p(a, [_1,_3]),
+	    p(b, [_3,_1]),
+	    p(c, [_6,_9]),
+	    p(d, [_3]),
+	    p(e, [_6,_9]),
+	    p(f, [_4])
+	].
+
+test(2,Ps,Ss) :-
+	Ps = [a,b,c,d,e,f],
+	Ss = [
+	    p(a, [_]),
+	    p(b, [_]),
+	    p(c, [_]),
+	    p(d, [_]),
+	    p(e, [_]),
+	    p(f, [_])
+	].
+
+
+solve([],[]).
+solve([p(P,Ss)|L], Ps) :-
+	member(P,Ps),
+	bind(Ss, P),
+	delete(Ps,P,Ps1),
+	solve(L,Ps1).
+
+solve([p(P,_)|L],Ps) :- \+member(P,Ps) ,solve(L,Ps).
+
+
+bind([P|_], P).
+bind([_|Ss],P) :- bind(Ss,P).
+
+
+test_bind(T) :- T = [_,_,_,_].
+test_bind(T) :- T = [a, a, a, a].
+

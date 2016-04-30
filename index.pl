@@ -1,3 +1,6 @@
+%
+% Unused/sample declaratons
+%
 
 print_string(_, 0) :- write('\n'), !.
 print_string(String, N) :-
@@ -60,44 +63,60 @@ is_ma(List) :-
 	member(ma, List).
 
 
-
-
-
-
-
-
-
-test(1,Ps,Ss) :-
+test(1,Ps,Ss, Hs) :-
 	Ps = [a,b,c,d,e,f],
+	Hs = [H1,H2,H3,H4,H5,H6],
 	Ss = [
-	    p(a, [_1,_3]),
-	    p(b, [_3,_1]),
-	    p(c, [_6,_9]),
-	    p(d, [_3]),
-	    p(e, [_6,_9]),
-	    p(f, [_4])
+	    p(a, [H1,H3]),
+	    p(b, [H1,H3]),
+	    p(c, [H5,H6]),
+	    p(d, [H2]),
+	    p(e, [H5,H6]),
+	    p(f, [H4])
 	].
 
-test(2,Ps,Ss) :-
-	Ps = [a,b,c,d,e,f],
+test(4,Ps,Ss, Hs) :-
+	Ps = [a,b,c,z,e,f],
+	Hs = [H1,H2,H3,H4,H5,H6,H7],
 	Ss = [
-	    p(a, [_]),
-	    p(b, [_]),
-	    p(c, [_]),
-	    p(d, [_]),
-	    p(e, [_]),
-	    p(f, [_])
+	    p(a, [H1,H1]),
+	    p(b, [H2,H1]),
+	    p(c, [H3,H4]),
+	    p(z, [H4,H3]),
+	    p(e, [H5]),
+	    p(f, [H6])
 	].
 
 
-solve([],[]).
-solve([p(P,Ss)|L], Ps) :-
+test(2,Ps,Ss, Hs) :-
+	Ps = [a],
+	Hs = [H1],
+	Ss = [
+	    p(a, [H1])
+	].
+
+test(3, Ps, Ss, Hs) :-
+	Ps = [a,b,c,d,e,f],
+	Hs = [H1,H2,H3,H4,H5,H6],
+	Ss = [
+	    p(a, [H1,H2]),
+	    p(b, [H2,H3]),
+	    p(c, [H3,H4]),
+	    p(d, [H4,H5]),
+	    p(e, [H5,H6]),
+	    p(f, [H6,H6])
+	].
+
+
+
+solve([],[],[]).
+solve([p(P,Ss)|L], Ps, [P|Hs]) :-
 	member(P,Ps),
 	bind(Ss, P),
 	delete(Ps,P,Ps1),
-	solve(L,Ps1).
+	solve(L,Ps1,Hs).
 
-solve([p(P,_)|L],Ps) :- \+member(P,Ps) ,solve(L,Ps).
+solve([p(P,_)|L],Ps, Hs) :- \+member(P,Ps) ,solve(L,Ps, Hs).
 
 
 bind([P|_], P).
@@ -107,3 +126,16 @@ bind([_|Ss],P) :- bind(Ss,P).
 test_bind(T) :- T = [_,_,_,_].
 test_bind(T) :- T = [a, a, a, a].
 
+
+
+
+listVars([],[]).
+listVars([subj(_,Hs)|Ss], O) :-
+    listVars(Ss, O1),
+    insertListUniq(Hs, O1, O).
+
+
+insertListUniq([],X,X).
+insertListUniq([P|Ps], Ls, Out) :-
+	insertUniq(P,Ls,Ls1),
+	insertListUniq(Ps,Ls1,Out).

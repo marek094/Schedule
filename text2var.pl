@@ -4,10 +4,19 @@
 %
 
 
-unif(_, [],[]).
-unif(Sch, [inst(P1,Index)|Ls], [inst(P1,Var)|Sc]) :-
-	atSchedule(Index, Sch, Var),
-	unif(Sch, Ls, Sc).
+unif(Sch, Ls, Sc) :- unif(Sch, Ls, Sc, 1).
+
+unif(_, [],[],_).
+unif(Sch, [inst(_,Time)|Ls], [n(Id,Var)|Sc], Id) :-
+	atSchedule(Time, Sch, Var),
+
+	Id1 is Id+1, unif(Sch, Ls, Sc, Id1).
+
+
+
+genSchedule(Sch) :- genSchedule(t(5,16), Sch).
+
+
 
 
 genSchedule(0, []).
@@ -19,7 +28,11 @@ atSchedule(N, [_|Ls], L) :-
 	atSchedule(N1, Ls, L).
 
 
+
+
 testStart(X,Sch) :-
-	L = [inst(a,1), inst(b,2), inst(d,4)],
-	genSchedule(16, Sch),
-	unif(Sch, L, X).
+	genSchedule(Sch),
+	X = 0.
+%	L = [inst(a,1), inst(b,2), inst(d,4)],
+%	genSchedule(16, Sch),
+%	unif(Sch, L, X).

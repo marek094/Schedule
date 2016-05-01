@@ -12,10 +12,15 @@
 %    Expecting list of subjects
 
 scheduler(Subjects) :-
-	%listVars(Subjects,Schedule),
-	%sort(Schedule1,Schedule),
 	listSubj(Subjects,SubjectToBind),
-	solve(Subjects, SubjectToBind).
+
+	% sorting by options count
+	computeLengths(Subjects,SubjLen),
+	sort(SubjLen, SortSubjLen),
+	computeLengths(SortedSubjects,SortSubjLen),
+
+	solve(SortedSubjects, SubjectToBind).
+
 
 
 % listVars(+ListOfSubj, -Out) :-
@@ -26,6 +31,7 @@ listSubj([subj(S,_)|Ss], O) :-
     listSubj(Ss, O1),
     insertUniq(S, O1, O).
 
+
 % insertUniq(+P,+List,+NewList) :-
 %    Insert if not member.
 
@@ -33,16 +39,15 @@ insertUniq(P,[],[P]).
 insertUniq(P,[L|Ls],[L|Ls]) :- \+( P@<L ), \+( P@>L ), !.
 insertUniq(P,[L|Ls],[L|O]) :- insertUniq(P,Ls,O).
 
-
 % solve(+Subjects,+ListOfSubjectsToBind) :-
 %     Unificate each subject with session
-
 
 solve(_,[]).
 solve(S, [B|Bs]) :-
 	member(subj(B,PossibleTimes),S),
 	selectEach(PossibleTimes, B), %Time = B,
 	solve(S, Bs).
+
 
 
 %
@@ -53,10 +58,19 @@ solve(S, [B|Bs]) :-
 selectEach([L|_], L).
 selectEach([_|List], E) :- selectEach(List, E).
 
+length(Ls, N) :- length(Ls,0,N).
+length([],N,N).
+length(Ls,N,Out) :- N1 is N+1, length(Ls,N1,Out).
+
+computeLengths([],[]).
+computeLengths([T|Ts], [t(L,T)|Os]) :-
+	subj(_,List) = T,
+	length(List,L),
+	computeLengths(Ts,Os).
+
+
 %
 % Sample data
-
-
 
 testStart :-
 	test(Test,Su, Sc),
@@ -65,7 +79,7 @@ testStart :-
 	write(Sc), nl,
 	fail.
 
-test(1, Subjects, [H1,H2,H3,H4,H5,H6]) :-
+test(1, Subjects, [H1,H2]) :-
 	Subjects = [
 	    subj(ma, [H2, H1]),
 	    subj(la, [H1, H2])

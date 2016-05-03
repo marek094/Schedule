@@ -14,17 +14,17 @@ define(dayLength, 4).
 define(weekLength, 5).
 
 
-unifData([],_,[]).
-unifData([[Su, Is]|Ds], Sch, [i(Su,R)|Rs]) :-
-	unif(Su, Is, Sch, R),
-	unifData(Ds, Sch, Rs).
+parseData([],_,[]).
+parseData([[Su, Is]|Ds], Sch, [i(Su,R)|Rs]) :-
+	parse(Su, Is, Sch, R),
+	parseData(Ds, Sch, Rs).
 
 
 %unif(_,_,1).
-unif(_, [], _, []).
-unif(Su, [[Dt|_]|Is], Sch, [Var|Sc]) :-
+parse(_, [], _, []).
+parse(Su, [[Dt|_]|Is], Sch, [Var|Sc]) :-
 	scheduleAt(Dt, Sch, Var),
-	unif(Su, Is, Sch, Sc).
+	parse(Su, Is, Sch, Sc).
 
 
 % dt(Day, Time). Info about time.
@@ -76,7 +76,7 @@ testStart(Sch, R) :-
 	    ]
 
 	],
-	unifData(Data, Sch, R).
+	parseData(Data, Sch, R).
 	%unif(Sch, Data, R)
 	%.
 	%L = [inst(a,1), inst(b,2), inst(d,4)],

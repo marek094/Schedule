@@ -4,35 +4,82 @@
 %
 
 
-unif(Sch, Ls, Sc) :- unif(Sch, Ls, Sc, 1).
+weekDay(1, mon).
+weekDay(2, tue).
+weekDay(3, wed).
+weekDay(4, thu).
+weekDay(5, fri).
 
-unif(_, [],[],_).
-unif(Sch, [inst(_,Time)|Ls], [n(Id,Var)|Sc], Id) :-
-	atSchedule(Time, Sch, Var),
-
-	Id1 is Id+1, unif(Sch, Ls, Sc, Id1).
-
-
-
-genSchedule(Sch) :- genSchedule(t(5,16), Sch).
+define(dayLength, 4).
+define(weekLength, 5).
 
 
+unifData([],_,[]).
+unifData([[Su, Is]|Ds], Sch, [i(Su,R)|Rs]) :-
+	unif(Su, Is, Sch, R),
+	unifData(Ds, Sch, Rs).
 
 
-genSchedule(0, []).
-genSchedule(N, [_|L]) :- N>0, N1 is N-1, genSchedule(N1, L).
-
-atSchedule(0, [L|_], L).
-atSchedule(N, [_|Ls], L) :-
-	N > 0, N1 is N-1,
-	atSchedule(N1, Ls, L).
+%unif(_,_,1).
+unif(_, [], _, []).
+unif(Su, [[Dt|_]|Is], Sch, [Var|Sc]) :-
+	scheduleAt(Dt, Sch, Var),
+	unif(Su, Is, Sch, Sc).
 
 
+% dt(Day, Time). Info about time.
+%
+%  listAt(?Index, ?List, ?Elem)
+listAt(1, [L|_], L).
+listAt(N, [_|Ls], E) :- N>1, N1 is N-1, listAt(N1, Ls, E).
+
+%
+%  get cell from schedule
+scheduleAt(dt(D, H), Sch, E) :-
+	weekDay(D1,D),
+	listAt(D1, Sch, Es),
+	listAt(H, Es, E).
+
+genSchedule(Sch) :-
+	define(weekLength, W),
+	define(dayLength, D),
+	length(Sch, W),
+	genSchedule(Sch, D).
+genSchedule([],_).
+genSchedule([S|Ss], D) :-
+	length(S, D),
+	genSchedule(Ss,D).
 
 
-testStart(X,Sch) :-
+
+
+testStart(Sch, R) :-
 	genSchedule(Sch),
-	X = 0.
-%	L = [inst(a,1), inst(b,2), inst(d,4)],
-%	genSchedule(16, Sch),
-%	unif(Sch, L, X).
+	%scheduleAt(dt(X,2), Sch, muHAHAHAHAHA),
+	Data = [
+	    [a,
+	     [
+		 [dt(mon,1), 'Hric']
+	     ]
+	    ],
+	    [b,
+	     [
+		 [dt(tue,2), 'Mares'],
+		 [dt(tue,3), 'Karel']
+	     ]
+	    ],
+	    [c,
+	     [
+		 [dt(tue,2), 'Ales'],
+		 [dt(mon,1), 'Leos']
+	     ]
+	    ]
+
+	],
+	unifData(Data, Sch, R).
+	%unif(Sch, Data, R)
+	%.
+	%L = [inst(a,1), inst(b,2), inst(d,4)],
+	%unif(Sch, L, X).
+
+

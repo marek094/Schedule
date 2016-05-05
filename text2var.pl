@@ -49,7 +49,7 @@ genSchedule([S|Ss], D) :-
 % Answer
 
 
-interpretResultLine(i(Su,[Psu|_]), [DI|_], [Su|DI]) :- nonvar(Psu), Su = Psu.
+interpretResultLine(i(Su,[Psu|_]), [DI|_], [Su|DI]) :- nonvar(Psu), Su = Psu, !.
 interpretResultLine(i(Su,[_|Is]), [_|DIs], A) :-
 	interpretResultLine(i(Su,Is), DIs, A).
 

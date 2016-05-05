@@ -42,18 +42,28 @@ printHeader(N, Max) :-
 
 printSchedule(Sch) :-
 	printNl,
+%	writeln("Here"),
 	printHeader,
+%	writeln("Here2"),
 	printNl,
-	weekToList(Ds), printSchedule(Sch,Ds),
+%	writeln("Here3"),
+	weekToList(Ds),
+%	writeln("Here4"),
+	printSchedule(Sch,Ds),
 	nl.
 printSchedule([],[]).
 printSchedule([Ss|Sss],[D|Ds]) :-
-	printDay([D|Ss]),
+%	write('//////'),
+%	writeln(D),
+	printDay([cell(_,D)|Ss]),
 	printNl,
 	printSchedule(Sss, Ds).
 
 printDay([]) :- write('|'), nl.
-printDay([S|Ss]) :-
+printDay([cell(_,S)|Ss]) :-
+	%nl,writeln(S),
+	%S = cell(_, V),
+	%writeln(V),
 	printCell(S),
 	printDay(Ss).
 

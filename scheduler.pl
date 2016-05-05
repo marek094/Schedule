@@ -42,12 +42,25 @@ insertUniq(P,[L|Ls],[L|O]) :- insertUniq(P,Ls,O).
 solve(_,[]).
 solve(Ss, [B|Bs]) :-
 	member(i(B,PossibleTimes),Ss),
-%	!, % unif one
-	member(B,PossibleTimes),
+%	writeln(PossibleTimes),
+
+%	member(B, PossibleTimes),
+	%mapMember(B,PossibleTimes),
+	unifEach(B, PossibleTimes),
 %	print([B,'\t',PossibleTimes, '\n']),
 %	print(Ss),nl,
 	solve(Ss, Bs).
 
+% unifEach(+Subject, ?ListOfListsOfTimes) :-
+unifEach(B, [t(Id,Ts)|_]) :- unifList(B, Ts, Id).
+unifEach(B, [_|Tss]) :- unifEach(B,Tss).
+
+% unifList(+Subject, ?ListOfTimes) :-
+unifList(_,[], _).
+unifList(B, [L|Ls], Id) :-
+%	print([B, ' ', L]),nl,
+	L = cell(Id,B),
+	unifList(B, Ls, Id).
 
 computeLengths([],[]).
 computeLengths([T|Ts], [t(L,T)|Os]) :-

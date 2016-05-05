@@ -10,12 +10,12 @@
 
 scheduler(Subjects) :-
 	listSubj(Subjects,SubjectToBind),
-
+	%writeln(SubjectToBind),
 	% sorting by options count
-	computeLengths(Subjects,SubjLen),
-	sort(SubjLen, SortSubjLen),
-	computeLengths(SortedSubjects,SortSubjLen),
-	%Subjects = SortedSubjects,
+	%computeLengths(Subjects,SubjLen),
+	%sort(SubjLen, SortSubjLen),
+	%computeLengths(SortedSubjects,SortSubjLen),
+	Subjects = SortedSubjects,
 
 	solve(SortedSubjects, SubjectToBind).
 
@@ -40,18 +40,14 @@ insertUniq(P,[L|Ls],[L|O]) :- insertUniq(P,Ls,O).
 %     Unificate each subject with session
 
 solve(_,[]).
-solve(S, [B|Bs]) :-
-	member(i(B,PossibleTimes),S),
-	selectEach(PossibleTimes, B), %Time = B,
-	solve(S, Bs).
+solve(Ss, [B|Bs]) :-
+	member(i(B,PossibleTimes),Ss),
+%	!, % unif one
+	member(B,PossibleTimes),
+%	print([B,'\t',PossibleTimes, '\n']),
+%	print(Ss),nl,
+	solve(Ss, Bs).
 
-%
-% selectEach(+List, Element) :-
-%     unify with each element of List.
-%     -> nondetermistic
-
-selectEach([L|_], L).
-selectEach([_|List], E) :- selectEach(List, E).
 
 computeLengths([],[]).
 computeLengths([T|Ts], [t(L,T)|Os]) :-

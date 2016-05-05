@@ -46,11 +46,12 @@ genSchedule([S|Ss], D) :-
 	length(S, D),
 	genSchedule(Ss,D).
 
-interpretResultLine(i(Su,[Su|_]), [DI|_], [Su|DI]). %:- writeln(Su), writeln(DI).
-interpretResultLine(i(Su,[I|Is]), [_|DIs], A) :-
-	Su \= I,
-	interpretResultLine(i(Su,Is), DIs, A).
+% Answer
 
+
+interpretResultLine(i(Su,[Psu|_]), [DI|_], [Su|DI]) :- nonvar(Psu), Su = Psu.
+interpretResultLine(i(Su,[_|Is]), [_|DIs], A) :-
+	interpretResultLine(i(Su,Is), DIs, A).
 
 interpretResult([],[],[]).
 interpretResult([i(Su, Is)|Xs], [[Su,DIs|_]|Ds], [A|As]) :-

@@ -9,19 +9,12 @@
 %    Expecting list of subjects
 
 scheduler(Subjects, PotW) :-
-	% Preparing heuristic
-	%   sorting by options count
 	computeLengths(Subjects,SubjLen),
 	sort(SubjLen, SortSubjLen),
-	%   remove lengths
 	computeLengths(SortedSubjects,SortSubjLen),
 
 	listSubj(SortedSubjects,SubjectToBind),
-	%SortedSubjects1=SortedSubjects,
-
-
 	solve(SortedSubjects, SubjectToBind, PotW, Weight),
-        print(["Weight ", Weight, "\n"]),
 
 	nb_getval(maxW, MaxW),
 	Weight >= MaxW,
@@ -58,12 +51,8 @@ solve(Ss, [B|Bs], PotW, W) :-
 
 	PotW1 is PotW-BestW+ThisW,
 	nb_getval(maxW, MaxW),
-	print([PotW1," >= ", MaxW,"\n"]),
-	(  PotW1 < MaxW -> writeln("NO00000000000000000000000000000000000000000");true),
 	PotW1 >= MaxW,
-	write("^ OK \n"),
 	solve(Ss, Bs,PotW1, Wr),
-%	writeln(Wr),
 	W is ThisW+Wr
 	.
 

@@ -26,7 +26,7 @@ parseData([[Su, Is]|Ds], Sch, Ws, [i(Su,R)|Rs], Id) :-
 parse(_, [], _, _, [], Id, Id).
 parse(Su, [[Dts, T|_]|Is], Sch, Ws, [t(W,Id,Vs)|Sc], Id, IdR) :-
 
-	(member(T-W1,Ws) -> W is W1*2;W=200),
+	(member(T-W1,Ws) -> W is W1;W is 100),
 	mapScheduleAt(Dts, Sch, Vs),
 	Id1 is Id+1,
 	parse(Su, Is, Sch, Ws, Sc, Id1, IdR).

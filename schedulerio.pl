@@ -42,40 +42,31 @@ printHeader(N, Max) :-
 
 printSchedule(Sch) :-
 	printNl,
-%	writeln("Here"),
 	printHeader,
-%	writeln("Here2"),
 	printNl,
-%	writeln("Here3"),
 	weekToList(Ds),
-%	writeln("Here4"),
 	printSchedule(Sch,Ds),
 	nl.
 printSchedule([],[]).
 printSchedule([Ss|Sss],[D|Ds]) :-
-%	write('//////'),
-%	writeln(D),
 	printDay([cell(_,D)|Ss]),
 	printNl,
 	printSchedule(Sss, Ds).
 
 printDay([]) :- write('|'), nl.
 printDay([cell(_,S)|Ss]) :-
-	%nl,writeln(S),
-	%S = cell(_, V),
-	%writeln(V),
 	printCell(S),
 	printDay(Ss).
 
 
 % Answer predicates
 
-printAnswerLine([Su,dt(Day,Time),Teacher|_]) :-
-	print([Su, ' ', Day, ' ', Time, ', ', Teacher, '\n']).
+printAnswerLine(r(Su,Teacher,Times)) :-
+	print([Su, '\t', Teacher, '\t']),
+	print(Times), nl
+	.
 
 printAnswer([]).
 printAnswer([A|As]) :-
-	%writeln(A),
 	printAnswerLine(A),
-	printAnswer(As),
-	nl.
+	printAnswer(As).

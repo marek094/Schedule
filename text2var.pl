@@ -15,20 +15,21 @@ define(weekLength, 5).
 
 
 % parseData(+InputSubjectList, +Schedule, -ParsedData) :-
-parseData(Ds,Sch,Rs) :- parseData(Ds,Sch,Rs,1).
-parseData([],_,[],_).
-parseData([[Su, Is]|Ds], Sch, [i(Su,R)|Rs], Id) :-
+parseData(Ds,Sch, Ws, Rs) :- parseData(Ds, Sch, Ws, Rs,1).
+parseData([],_,_,[],_).
+parseData([[Su, Is]|Ds], Sch, Ws, [i(Su,R)|Rs], Id) :-
 %	writeln(Id),
-	parse(Su, Is, Sch, R, Id, Id1),
-	parseData(Ds, Sch, Rs, Id1).
+	parse(Su, Is, Sch, Ws, R, Id, Id1),
+	parseData(Ds, Sch, Ws, Rs, Id1).
 
 % parse(+Subject, +TicketList, +Schedule, -ParsedLine, +Id, -NewId) :-
-parse(_, [], _, [],Id,Id).
-parse(Su, [[Dts|_]|Is], Sch, [t(Id,Vs)|Sc], Id, IdR) :-
-%	scheduleAt(Dt, Sch, Var),
+parse(_, [], _, _, [], Id, Id).
+parse(Su, [[Dts, T|_]|Is], Sch, Ws, [t(W,Id,Vs)|Sc], Id, IdR) :-
+
+	(member(T-W1,Ws) -> W is W1*2;W=200),
 	mapScheduleAt(Dts, Sch, Vs),
 	Id1 is Id+1,
-	parse(Su, Is, Sch, Sc, Id1, IdR).
+	parse(Su, Is, Sch, Ws, Sc, Id1, IdR).
 
 mapScheduleAt([],_,[]).
 mapScheduleAt([Dt|Dts], Sch, [Var|Vs]) :-
@@ -47,8 +48,6 @@ scheduleAt(dt(D, H), Sch, E) :-
 listAt(1, [L|_], L).
 listAt(N, [_|Ls], E) :- N>1, N1 is N-1, listAt(N1, Ls, E).
 
-
-
 genSchedule(Sch) :-
 	define(weekLength, W),
 	define(dayLength, D),
@@ -61,37 +60,28 @@ genSchedule([S|Ss], D) :-
 
 % Answer
 
-% readSchedule(+Schedule, -Result) :-
-%readSchedule(Sch, R) :- readSchedule(dt(1,1), Sch, R).
-%readSchedule(dt(W1,_),_,[]) :- define(weekLength, W), W1 is W+1.
-%readSchedule(dt(N,_), [SchD|Sch], R) :-
-%	define(weekLength, W),
-%	N =< W, N1 is N+1,
-%	readScheduleDay(d(N, 1), SchD, R),
-%	readSchedule(dt(N1,1), Sch, R).
-%
-%
-%readScheduleDay(dt(N,T), SchD, R) :-
-%	define(weekLength, W),
-%	N =< W, N1 is N+1,
-%	readScheduleDay(dt(N,T), SchD, R).
+interpretResult(R,S) :-
+	maplist(getSelected_, R, S).
+
+getSelected_(i(_,Ts), Id) :- timeSelected(Ts,Id).
+timeSelected([t(_,Id,[cell(Id1,_)|_])|_], Id) :- nonvar(Id1), Id = Id1, !.
+timeSelected([_|Ts], Id) :- timeSelected(Ts, Id).
 
 
+%parseData(+InputSubjectList, +R, -ParsedData) :-
+getAnswer(Ds,Ls,Rs) :- getAnswer(Ds,Ls,Rs,1).
+getAnswer([],_,[],_).
+getAnswer([[Su, Is]|Ds], Ls, [R|Rs], Id) :-
+	getAnswerTime(Su, Is, Ls, R, Id, Id1),
+	getAnswer(Ds, Ls, Rs, Id1).
 
 
+%getAnswerTime(+Subject, +TicketList, +Schedule, -ParsedLine, +Id, -NewId) :-
+getAnswerTime(_, [], _, _,Id,Id).
+getAnswerTime(Su, [[Times,Teacher|_]|Is], Ls, Out, Id, IdR) :-
+	(member(Id, Ls) -> Out = r(Su,Teacher,Times);true),
+	Id1 is Id+1,
+	getAnswerTime(Su, Is, Ls, Out, Id1, IdR)
+	.
 
 
-
-
-interpretResultLine(i(Su,[Psu|_]), [DI|_], [Su|DI]) :- nonvar(Psu), Su = Psu, !.
-interpretResultLine(i(Su,[_|Is]), [_|DIs], A) :-
-	interpretResultLine(i(Su,Is), DIs, A).
-
-interpretResult([],[],[]).
-interpretResult([i(Su, Is)|Xs], [[Su,DIs|_]|Ds], [A|As]) :-
-	interpretResultLine(i(Su,Is), DIs, A),
-	%write(A),
-	interpretResult(Xs, Ds, As).
-
-
-inc(A,B) :- B is A+1.

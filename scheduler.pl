@@ -8,16 +8,25 @@
 % scheduler(+Subjects, -Schedule) :-
 %    Expecting list of subjects
 
-scheduler(Subjects) :-
-	listSubj(Subjects,SubjectToBind),
-	%writeln(SubjectToBind),
-	% sorting by options count
-	%computeLengths(Subjects,SubjLen),
-	%sort(SubjLen, SortSubjLen),
-	%computeLengths(SortedSubjects,SortSubjLen),
-	Subjects = SortedSubjects,
+scheduler(Subjects, PotW) :-
+	% Preparing heuristic
+	%   sorting by options count
+	computeLengths(Subjects,SubjLen),
+	sort(SubjLen, SortSubjLen),
+	%   remove lengths
+	computeLengths(SortedSubjects,SortSubjLen),
 
-	solve(SortedSubjects, SubjectToBind).
+	listSubj(SortedSubjects,SubjectToBind),
+	%SortedSubjects1=SortedSubjects,
+
+
+	solve(SortedSubjects, SubjectToBind, PotW, Weight),
+        print(["Weight ", Weight, "\n"]),
+
+	nb_getval(maxW, MaxW),
+	Weight >= MaxW,
+	nb_setval(maxW,Weight)
+	.
 
 
 % listVars(+ListOfSubj, -Out) :-
@@ -39,21 +48,28 @@ insertUniq(P,[L|Ls],[L|O]) :- insertUniq(P,Ls,O).
 % solve(+Subjects,+ListOfSubjectsToBind) :-
 %     Unificate each subject with session
 
-solve(_,[]).
-solve(Ss, [B|Bs]) :-
-	member(i(B,PossibleTimes),Ss),
-%	writeln(PossibleTimes),
+solve(_,[],_, 0).
+solve(Ss, [B|Bs], PotW, W) :-
+	[i(_,[t(BestW,_,_)|_])|_] = Ss,
 
-%	member(B, PossibleTimes),
-	%mapMember(B,PossibleTimes),
-	unifEach(B, PossibleTimes),
-%	print([B,'\t',PossibleTimes, '\n']),
-%	print(Ss),nl,
-	solve(Ss, Bs).
+	member(i(B,PossibleTimes),Ss),
+
+	unifEach(B, PossibleTimes, ThisW),
+
+	PotW1 is PotW-BestW+ThisW,
+	nb_getval(maxW, MaxW),
+	print([PotW1," >= ", MaxW,"\n"]),
+	(  PotW1 < MaxW -> writeln("NO00000000000000000000000000000000000000000");true),
+	PotW1 >= MaxW,
+	write("^ OK \n"),
+	solve(Ss, Bs,PotW1, Wr),
+%	writeln(Wr),
+	W is ThisW+Wr
+	.
 
 % unifEach(+Subject, ?ListOfListsOfTimes) :-
-unifEach(B, [t(Id,Ts)|_]) :- unifList(B, Ts, Id).
-unifEach(B, [_|Tss]) :- unifEach(B,Tss).
+unifEach(B, [t(W,Id,Ts)|_], W) :- unifList(B, Ts, Id).
+unifEach(B, [_|Tss], W) :- unifEach(B,Tss, W).
 
 % unifList(+Subject, ?ListOfTimes) :-
 unifList(_,[], _).
@@ -63,7 +79,27 @@ unifList(B, [L|Ls], Id) :-
 	unifList(B, Ls, Id).
 
 computeLengths([],[]).
-computeLengths([T|Ts], [t(L,T)|Os]) :-
+computeLengths([T|Ts], [s(L,T,_)|Os]) :-
 	i(_,List) = T,
 	length(List,L),
 	computeLengths(Ts,Os).
+
+
+sortByWeights([],[]).
+sortByWeights([i(A,T)|Ss],[i(A,R)|Rs]) :-
+	sort(T,R1),
+	reverse(R1, R),
+	sortByWeights(Ss,Rs).
+
+computeWeights([],0).
+computeWeights([t(W,_,_)|Ts],W1) :-
+	computeWeights(Ts, Wr),
+	W1 is W+Wr.
+
+
+computePotencialW([],0).
+computePotencialW([i(_,[t(W1,_,_)|_])|Ss],W) :-
+	computePotencialW(Ss,Wr),
+	W is Wr+W1.
+
+

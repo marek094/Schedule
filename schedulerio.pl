@@ -1,6 +1,12 @@
 %%
-% Predicates for printing
+% schedulerio.pl
 %
+% Scheduler
+%   MarekCerny.com
+%
+% result ---> print
+%
+
 
 
 % Schedule predicates
@@ -65,9 +71,10 @@ printDay([cell(_,S)|Ss]) :-
 % Answer predicates
 
 printAnswerLine(r(Su,Teacher,Times)) :-
-	print([Su, '\t', Teacher, '\t']),
+	print([Su, '\t', Teacher, '\t\t']),
 	print(Times), nl
 	.
+
 
 printAnswer([]).
 printAnswer([A|As]) :-

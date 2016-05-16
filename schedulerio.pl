@@ -41,6 +41,9 @@ printHeader(N, Max) :-
 
 
 printSchedule(Sch) :-
+	nb_getval(maxW,MaxW),
+	print(["Weight: ", MaxW, "\n"]),
+
 	printNl,
 	printHeader,
 	printNl,

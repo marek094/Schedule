@@ -14,22 +14,39 @@ define(dayLength, 16).
 define(weekLength, 5).
 
 
-% parseData(+InputSubjectList, +Schedule, -ParsedData) :-
-parseData(Ds,Sch, Ws, Rs) :- parseData(Ds, Sch, Ws, Rs,1).
-parseData([],_,_,[],_).
-parseData([[Su, Is]|Ds], Sch, Ws, [i(Su,R)|Rs], Id) :-
+
+% parseData(+InputSubjectList, +Schedule, +Weights, -ParsedData)
+parseData([],_,_,_,[]).
+parseData([[Su, Is]|Ds], Sch, Ws,Wws, [i(Su,R)|Rs]) :-
 %	writeln(Id),
-	parse(Su, Is, Sch, Ws, R, Id, Id1),
-	parseData(Ds, Sch, Ws, Rs, Id1).
+	parse(Is, Sch, Ws, Wws, R, 1),
+	parseData(Ds, Sch, Ws, Wws, Rs).
 
-% parse(+Subject, +TicketList, +Schedule, -ParsedLine, +Id, -NewId) :-
-parse(_, [], _, _, [], Id, Id).
-parse(Su, [[Dts, T|_]|Is], Sch, Ws, [t(W,Id,Vs)|Sc], Id, IdR) :-
+% parse(+TicketList, +Schedule, +Weights, -ParsedLine)
+parse([],_,_,_,[],_).
+parse([[Dts, T|_]|Is], Sch, Ws,Wws, [t(W,Id,Vs)|Sc], Id) :-
+	mapCoeficient(Dts, Wws, C_N),
+	length(Dts, N),
+	weight(T, Ws, W1),
+	W is (C_N / N) * W1,
 
-	(member(T-W1,Ws) -> W is W1;W is 100),
 	mapScheduleAt(Dts, Sch, Vs),
 	Id1 is Id+1,
-	parse(Su, Is, Sch, Ws, Sc, Id1, IdR).
+	parse(Is, Sch, Ws,Wws, Sc, Id1).
+
+
+mapCoeficient([],_,1).
+mapCoeficient([Dt|Dts], Wws, C1+Cr) :-
+	coeficient(Dt,Wws,C1),
+	mapCoeficient(Dts, Wws, Cr).
+
+coeficient(dt(D,H),w(WeekW,DayW), Cw*Cd) :-
+	(   member(D-Cw,WeekW) -> true; Cw = 1),
+	(   member(H-Cd, DayW) -> true; Cd = 1).
+
+weight(T, Ws, W) :-
+	(   member(T-W,Ws) -> true; W = 100).
+
 
 mapScheduleAt([],_,[]).
 mapScheduleAt([Dt|Dts], Sch, [Var|Vs]) :-
@@ -49,6 +66,7 @@ listAt(1, [L|_], L).
 listAt(N, [_|Ls], E) :- N>1, N1 is N-1, listAt(N1, Ls, E).
 
 genSchedule(Sch) :-
+	nb_setval(maxW, -9999),
 	define(weekLength, W),
 	define(dayLength, D),
 	length(Sch, W),
@@ -59,29 +77,33 @@ genSchedule([S|Ss], D) :-
 	genSchedule(Ss,D).
 
 % Answer
+%
 
+%interpretResult(+ResultList, -OutputList)
 interpretResult(R,S) :-
 	maplist(getSelected_, R, S).
 
-getSelected_(i(_,Ts), Id) :- timeSelected(Ts,Id).
-timeSelected([t(_,Id,[cell(Id1,_)|_])|_], Id) :- nonvar(Id1), Id = Id1, !.
-timeSelected([_|Ts], Id) :- timeSelected(Ts, Id).
+getSelected_(A, Id) :- timeSelected(A,Id).
+timeSelected(i(Su,[t(_,Id,[cell(Id1,Su)|_])|_]), cell(Id,Su)) :-
+	nonvar(Id1),
+	Id = Id1,
+	!.
+timeSelected(i(Su,[_|Ts]), Id) :- timeSelected(i(Su,Ts), Id).
 
 
 %parseData(+InputSubjectList, +R, -ParsedData) :-
-getAnswer(Ds,Ls,Rs) :- getAnswer(Ds,Ls,Rs,1).
-getAnswer([],_,[],_).
-getAnswer([[Su, Is]|Ds], Ls, [R|Rs], Id) :-
-	getAnswerTime(Su, Is, Ls, R, Id, Id1),
-	getAnswer(Ds, Ls, Rs, Id1).
+getAnswer([],_,[]).
+getAnswer([[Su, Is]|Ds], Ls, [R|Rs]) :-
+	getAnswerTime(Su, Is, Ls, R, 1),
+	getAnswer(Ds, Ls, Rs).
 
 
 %getAnswerTime(+Subject, +TicketList, +Schedule, -ParsedLine, +Id, -NewId) :-
-getAnswerTime(_, [], _, _,Id,Id).
-getAnswerTime(Su, [[Times,Teacher|_]|Is], Ls, Out, Id, IdR) :-
-	(member(Id, Ls) -> Out = r(Su,Teacher,Times);true),
+getAnswerTime(_, [], _, _,_).
+getAnswerTime(Su, [[Times,Teacher|_]|Is], Ls, Out, Id) :-
+	(member(cell(Id,Su), Ls) -> Out = r(Su,Teacher,Times);true),
 	Id1 is Id+1,
-	getAnswerTime(Su, Is, Ls, Out, Id1, IdR)
+	getAnswerTime(Su, Is, Ls, Out, Id1)
 	.
 
 

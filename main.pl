@@ -1,32 +1,41 @@
 %%
 % Project inteface.
 %
+% Program execution
+% ?- [main],main.
+%
 
 :- include('scheduler.pl').
 :- include('schedulerio.pl').
-:- include('text2var.pl').
+:- include('parsedata.pl').
 
 
+% main :- running main program
 main :-
 	%Test = 3,
 	testData(Test,D,W),
 	nl,nl,nl,
 	print(["Runing test no. ", Test, "\n"]),
-	nb_setval(maxW, -9999),
 
+	%% schedulerIO
 	genSchedule(Sch),
-	parseData(D, Sch, W, R1),
+	WeekW = [mon-0.7, tue-1.1, wed-1.3, thu-1, fri-0.7],
+	DayW = [1-0, 2-0, 3-1.2, 4-1.2, 5-1.5, 6-1.6, 7-1.2,
+		11-0.7, 12-0.6, 13-0.6, 15-0, 16-0],
 
+
+	parseData(D, Sch, W,w(WeekW,DayW), R1),
+
+	%% heuristic
 	sortByWeights(R1,R),
 	computePotencialW(R,PotW),
 
+	%% Scheduler
 	scheduler(R, PotW),
 	interpretResult(R,S),
 	getAnswer(D,S,A),
 
-	nb_getval(maxW,MaxW),
-	print(["Weight: ", MaxW, "\n"]),
-
+	%% Answer
 	printSchedule(Sch),
 	printAnswer(A),
 
@@ -71,14 +80,14 @@ testData(2,D,[]) :-
 testData(3,D,W) :-
 	W = [
 	    "Dvorak"-120,
-	    "Hric"-120,
 	    "Forst"-90,
 	    "Sejnoha"-115,
+	    "Hric"-120,
 	    "Mares"-130,
 	    "DvorakZ"-90,
-	    "Klavik"-114,
+	    "Klavik"-130,
 	    "Tancer"-110,
-	    "Musilek"-119,
+	    "Musilek"-140,
 	    "Holan"-101,
 	    "Topfer"-111,
 	    "Fiala"-131
@@ -95,7 +104,6 @@ testData(3,D,W) :-
 		[[dt(tue,3),dt(tue,4)], "Kryl"]
 	     ]
 	    ],
-
 	    ["Unix", [
 		 [[dt(mon, 7),dt(mon,8)], "Forst"],
 		 [[dt(mon, 9),dt(mon,10)], "Forst"]
@@ -109,7 +117,6 @@ testData(3,D,W) :-
 		 [[dt(thu,5),dt(thu,6)],"Vernerova"]
 	     ]
 	    ],
-
 	    ["LA", [
 		 [[dt(thu,3),dt(thu,4)], "Pangrac"],
 		 [[dt(thu,5),dt(thu,6)], "DvorakZ"],
@@ -123,7 +130,6 @@ testData(3,D,W) :-
 		 [[dt(thu,13),dt(thu,14)], "Klavik"]
 	     ]
 	    ],
-
 	    ["PGM", [
 		 [[dt(tue,9),dt(tue,10)], "Holan"],
 		 [[dt(wed,9),dt(wed,10)], "Topfer"]
@@ -142,7 +148,6 @@ testData(3,D,W) :-
 		 [[dt(wed,3),dt(wed,5),dt(wed,4),dt(wed,2)], "Jaros"]
 	     ]
 	    ],
-
 	    ["MA", [
 		 [[dt(mon,5),dt(mon,6)], "Hans Raj"],
 		 [[dt(fri,7),dt(fri,8)], "Samal"],
@@ -167,7 +172,6 @@ testData(3,D,W) :-
 		 [[dt(tue,3),dt(tue,4)],"Cepek"]
 	     ]
 	    ],
-
 	    ["KG", [
 		 [[dt(tue,5),dt(tue,6)],"Mares"],
 		 [[dt(tue,7),dt(tue,8)],"Jelinek"],
@@ -200,8 +204,4 @@ testData(3,D,W) :-
 		 [[dt(tue,13),dt(tue,14)],"Sejnoha"]
 	     ]
 	    ]
-
-
-
-
 	].

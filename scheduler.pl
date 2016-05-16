@@ -4,9 +4,8 @@
 %
 
 
-
 % scheduler(+Subjects, -Schedule) :-
-%    Expecting list of subjects
+%    Expecting list of subjects, output is selection
 
 scheduler(Subjects, PotW) :-
 	computeLengths(Subjects,SubjLen),
@@ -32,7 +31,7 @@ listSubj([i(S,_)|Ss], O) :-
 
 
 % insertUniq(+P,+List,-NewList) :-
-%    Insert if not member.
+%    Insert P if not member of List.
 
 insertUniq(P,[],[P]).
 insertUniq(P,[L|Ls],[L|Ls]) :- \+( P@<L ), \+( P@>L ), !.
@@ -57,15 +56,21 @@ solve(Ss, [B|Bs], PotW, W) :-
 	.
 
 % unifEach(+Subject, ?ListOfListsOfTimes) :-
+%    Try unif Subject with List
+
 unifEach(B, [t(W,Id,Ts)|_], W) :- unifList(B, Ts, Id).
 unifEach(B, [_|Tss], W) :- unifEach(B,Tss, W).
 
 % unifList(+Subject, ?ListOfTimes) :-
+%    Try unif all from list
+
 unifList(_,[], _).
 unifList(B, [L|Ls], Id) :-
-%	print([B, ' ', L]),nl,
 	L = cell(Id,B),
 	unifList(B, Ls, Id).
+
+% computeLengths
+
 
 computeLengths([],[]).
 computeLengths([T|Ts], [s(L,T,_)|Os]) :-

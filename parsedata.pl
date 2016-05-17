@@ -28,7 +28,7 @@ parseData([[Su, Is]|Ds], Sch, Ws,Wws, [i(Su,R)|Rs]) :-
 % parse(+LessonTimesList, +Schedule, +Weights, +w(WeekW,DayW), -ParsedLine)
 parse([],_,_,_,[],_).
 parse([[Dts, T|_]|Is], Sch, Ws,Wws, [t(W,Id,Vs)|Sc], Id) :-
-	mapCoeficient(Dts, Wws, C_N),
+	mapCoefficient(Dts, Wws, C_N),
 	length(Dts, N),
 	weight(T, Ws, W1),
 	W is (C_N / N) * W1,
@@ -37,14 +37,14 @@ parse([[Dts, T|_]|Is], Sch, Ws,Wws, [t(W,Id,Vs)|Sc], Id) :-
 	Id1 is Id+1,
 	parse(Is, Sch, Ws,Wws, Sc, Id1).
 
-% mapCoeficient(+LessonList,+w(WeekW,DayW), -SumOfCoeficients)
-mapCoeficient([],_,1).
-mapCoeficient([Dt|Dts], Wws, C1+Cr) :-
-	coeficient(Dt,Wws,C1),
-	mapCoeficient(Dts, Wws, Cr).
+% mapCoefficient(+LessonList,+w(WeekW,DayW), -SumOfCoefficients)
+mapCoefficient([],_,1).
+mapCoefficient([Dt|Dts], Wws, C1+Cr) :-
+	coefficient(Dt,Wws,C1),
+	mapCoefficient(Dts, Wws, Cr).
 
-% coeficient(+LessonTime, +w(WeekW,DayW), -CoeficientOfLesson)
-coeficient(dt(D,H),w(WeekW,DayW), Cw*Cd) :-
+% coefficient(+LessonTime, +w(WeekW,DayW), -CoefficientOfLesson)
+coefficient(dt(D,H),w(WeekW,DayW), Cw*Cd) :-
 	(   member(D-Cw,WeekW) -> true; Cw = 1),
 	(   member(H-Cd, DayW) -> true; Cd = 1).
 

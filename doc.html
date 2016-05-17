@@ -49,7 +49,7 @@
                 <li><code>testData/3</code></li>
             </ul>
             <p>Predicat <code>main</code> calling all components of the program.
-                Contains associative list of weight coeficients for days and hours.
+                Contains associative list of weight coefficients for days and hours.
             <p>
             <h4><code>testData(+TestNumber, -StructuredData, -AssocList)</code></h4>
             <p class="desc">For example input:</p>
@@ -86,7 +86,7 @@ D = [
                 <li>parseData/5
                 <ul>
                     <li>parse/5</li>
-                    <li>coeficient/3</li>
+                    <li>coefficient/3</li>
                     <li>weight/3</li>
                     <li>mapScheduleAt/3
                         <ul>
@@ -109,10 +109,10 @@ D = [
             <p>Maps InputSubjectList for <code>parse</code>.</p>
             <h4 class="code"> parse(+LessonTimesList, +Schedule, +Weights, +w(WeekW,DayW), -ParsedLine)</h4>
             <p>Creating new list of variables linked from schedule for each lesson.</p>
-            <h4 class="code"> mapCoeficient(+LessonList,+w(WeekW,DayW), -SumOfCoeficients)</h4>
-            <p>Maps LessonList for <code>coeficient</code>.</p>
-            <h4 class="code"> coeficient(+LessonTime, +w(WeekW,DayW), -CoeficientOfLesson)</h4>
-            <p>For given <code>dt(Day,Time)</code> returns product of corresponting coeficients. Coeficient <code>1</code> is default.</p>
+            <h4 class="code"> mapCoefficient(+LessonList,+w(WeekW,DayW), -SumOfCoefficients)</h4>
+            <p>Maps LessonList for <code>coefficient</code>.</p>
+            <h4 class="code"> coefficient(+LessonTime, +w(WeekW,DayW), -CoefficientOfLesson)</h4>
+            <p>For given <code>dt(Day,Time)</code> returns product of corresponting coefficients. Coefficient <code>1</code> is default.</p>
             <h4 class="code"> weight(+Teacher, +Weights, -TeacherWeight)</h4>
             <p>For given Teacher returns weight from Weights list.</p>
             <h4 class="code"> mapScheduleAt(+LessonList, +Schedule, -VariableList)</h4>

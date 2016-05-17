@@ -22,6 +22,11 @@ weekToList(N, [L|Ls]) :-
 print([]).
 print([L|Ls]) :- write(L), print(Ls).
 
+printStart(Test) :-
+	nl,nl,nl,
+	print(["Runing test no. ", Test, "\n"]).
+
+
 printCell(Cont) :- var(Cont), printCell(' ').
 printCell(Cont)	:- \+var(Cont), format('|~|~t~a~t~6+', [Cont]).
 

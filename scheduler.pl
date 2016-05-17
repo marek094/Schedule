@@ -9,15 +9,22 @@
 
 
 
-% scheduler(+Subjects, -Schedule) :-
+% scheduler(?Subjects, +PotW) :-
 %    Expecting list of subjects, output is selection
-scheduler(Subjects, PotW) :-
+scheduler(Subjects1) :-
+	% heuristic I
+	sortByWeights(Subjects1,Subjects),
+	computePotencialW(Subjects,PotW),
+
+	% heuristic II
 	computeLengths(Subjects,SubjLen),
 	sort(SubjLen, SortSubjLen),
 	computeLengths(SortedSubjects,SortSubjLen),
 
 	listSubj(SortedSubjects,SubjectToBind),
 	solve(SortedSubjects, SubjectToBind, PotW, Weight),
+
+	% optimalization
 	checkWeight(Weight)
 	.
 

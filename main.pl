@@ -16,22 +16,15 @@
 % main :- running main program
 main :-
 	testData(Test,D,W),
-	nl,nl,nl,
-	print(["Runing test no. ", Test, "\n"]),
+	testCoef(C),
+	printStart(Test),
 
 	%% ParseData
 	genSchedule(Sch),
-	WeekW = [mon-0.7, tue-1.1, wed-1.3, thu-1, fri-0.7],
-	DayW = [1-0, 2-0, 3-1.2, 4-1.2, 5-1.5, 6-1.6, 7-1.2,
-		11-0.7, 12-0.6, 13-0.6, 15-0, 16-0],
-	parseData(D, Sch, W,w(WeekW,DayW), R1),
-
-	% heuristic
-	sortByWeights(R1,R),
-	computePotencialW(R,PotW),
+	parseData(D, Sch, W, C, R),
 
 	%% Scheduler
-	scheduler(R, PotW),
+	scheduler(R),
 	interpretResult(R,S),
 	getAnswer(D,S,A),
 
@@ -44,6 +37,11 @@ main :-
 	.
 
 
+
+testCoef(w(WeekW,DayW)) :-
+	WeekW = [mon-0.7, tue-1.1, wed-1.3, thu-1, fri-0.7],
+	DayW = [1-0, 2-0, 3-1.2, 4-1.2, 5-1.5, 6-1.6, 7-1.2,
+		11-0.7, 12-0.6, 13-0.6, 15-0, 16-0].
 
 testData(1, D, W) :-
 	W = ["Doc"-110,"Prof"-120],

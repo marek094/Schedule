@@ -48,7 +48,7 @@ coeficient(dt(D,H),w(WeekW,DayW), Cw*Cd) :-
 	(   member(D-Cw,WeekW) -> true; Cw = 1),
 	(   member(H-Cd, DayW) -> true; Cd = 1).
 
-% weight(+Teacher, +Weights, +TeacherWeight)
+% weight(+Teacher, +Weights, -TeacherWeight)
 weight(T, Ws, W) :-
 	(   member(T-W,Ws) -> true; W = 100).
 

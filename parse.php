@@ -1,5 +1,5 @@
 #!/usr/bin/env php
-<?php
+<?php 7;
 error_reporting(E_ALL | E_STRICT);
 
 
@@ -46,9 +46,13 @@ class Process {
 }
     
 abstract class Export {
+    protected $settings;
     protected $teachers = [];
     abstract public function output($data);
     
+    public function __construct($s) {
+        $this->settings = $s;
+    }
     public function myTeachers(array $new_teachers = null) : array{
         //return array_keys($this->teachers);
         if (is_null($new_teachers)) { #get
@@ -57,10 +61,33 @@ abstract class Export {
             $this->teachers = $new_teachers;
         }
     }
+    public function getSettings() {
+        $this->settings->teachers = array_merge($this->settings->teachers, $this->teachers);
+        return $this->settings;
+    }
     protected function normalize(string $str) : string {
         return strtr($str,
             "áčďéěíľňóřšťúůýžÁČĎÉĚÍĽŇÓŘŠŤÚŮÝŹ",
             "acdeeilnorstuuyzACDEEILNORSTUUYZ");
+    }
+    protected function normalizeTeacher(string $prof_one) : string {
+        # ová - ová --> ová-ová
+        $prof_one = mb_ereg_replace("\s*-\s*",'-', $prof_one);
+        $prof_one = mb_ereg_replace(",[^,]+\.,",',', $prof_one);
+        $prof_one = mb_ereg_replace(",[^,]+\.$", '', $prof_one);
+        /*$names = explode(', ', $prof_one);
+        foreach ($names as $name) {
+            # title
+            if (mb_substr($name, -1, 1) == '.') continue;
+            $name_parts = explode(' ', $name);
+            $last_name = array_shift($name_parts);
+            $name_parts = array_map(function($a){return mb_substr($a,0,1);}, $name_parts);
+            $name_parts[] = $last_name;
+            $ones[] = implode('. ', $name_parts);
+            $ones[] = $name;
+        }
+        return implode(', ', $ones);*/
+        return $prof_one;
     }
     protected function shortName(string $name) : string {
         $NUM = array_flip(['I','II','III','IV','V','VI']);
@@ -118,6 +145,7 @@ class PrologExport extends Export {
         foreach ($this->teachers as $teacher => $rank) {
             $res[] = "\"$teacher\"-$rank";
         }
+        //var_dump( $this->teachers );
         return $res;
     }
     private function listSubj($data) {
@@ -133,11 +161,12 @@ class PrologExport extends Export {
                     $times = array_merge($times, $this->pTime($subid_row['time'], $subid_row['size'], $subid_row['day']));
                 }
                 if (count($times) == 0) continue;
-                //$teacher = $this->normalize($id_row[0]['teacher']);
-                $teacher = $id_row[0]['teacher'];
+                $teacher = $this->normalizeTeacher( $id_row[0]['teacher'] );
                 $id_list[] = '[[' . implode(',', $times) . '], "' . $teacher . '"]';
+
+                # sideeffect for $this->listTeachers()
                 # save 'used' teachers, 100 is default
-                $this->teachers[ $teacher ] = 100;
+                $this->teachers[ $teacher ] = $this->settings->teachers[ $teacher ] ?? 100;
             }
             $subj_short = (preg_match("/x[0-9]+$/", reset($subj_row)[0]['id']) ? 'c':'') . $this->shortName( reset($subj_row)[0]['name'] );
             $subj_list[] = '["' . $subj_short . '", [' . implode(",\n", $id_list) . ']]';
@@ -147,10 +176,11 @@ class PrologExport extends Export {
     private function listDay() { return ['1-0', '2-0', '3-1.2', '4-1.2', '5-1.5', '6-1.6', '7-1.2', '11-0.7', '12-0.6', '13-0.6', '15-0', '16-0'];}
     private function listWeek() { return ['mon-0.7', 'tue-1.1', 'wed-1.3', 'thu-1', 'fri-0.7'];}
     public function output($data) {
-        $lsls[] = $this->listWeek();
-        $lsls[] = $this->listDay();
-        $lsls[] = $this->listTeachers();
-        $lsls[] = $this->listSubj($data);
+        $lsls[0] = $this->listWeek();
+        $lsls[1] = $this->listDay();
+        $lsls[3] = $this->listSubj($data); # need to run further - sideefects
+        $lsls[2] = $this->listTeachers();
+        ksort($lsls);
         $lsstr = array_map(function($ls) {return '[' . implode(',', $ls) . ']';}, $lsls);
         return "data(" . implode(',', $lsstr) . ").\n";
     }
@@ -169,10 +199,10 @@ class Application {
         $data = $this->loadSubjects($argv);
        
         fprintf(STDERR, "Genering data for Prolog..\n");
-        $export = new PrologExport();
+        $export = new PrologExport($this->settings);
         $prolog = $export->output( $data );
         
-        $this->settings->teachers = $export->myTeachers();
+        $this->settings = $export->getSettings();
         $this->mySettings($this->settings);
         
         //$prolog = $this->dataForProlog( $data );
@@ -194,7 +224,7 @@ class Application {
     }
     private function mySettings($new_settings = null) {
         $FILE = $_SERVER['HOME'] . '/.Scheduler_2.conf.json';
-        if (is_null($new_settings)) {
+        if (is_null($new_settings)) { #get
             $this->settings = $defaults = (object) [
             'fak' => 11320,
             'skr' => 2015,
@@ -209,9 +239,11 @@ class Application {
             } else {
                 $s_json = @file_get_contents( $FILE ) or
                 fprintf(STDERR, "Error in reading config file\n");
-                $this->settings = json_decode( $s_json );
+                # object only on the highest level
+                $this->settings = (object) json_decode( $s_json, $assoc = true );
             }
-        } else {
+        } else { #set
+            arsort($new_settings->teachers);
             $this->settings = $new_settings;
             @file_put_contents(
                                $FILE,

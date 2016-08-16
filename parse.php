@@ -62,7 +62,8 @@ abstract class Export {
         }
     }
     public function getSettings() {
-        $this->settings->teachers = array_merge($this->settings->teachers, $this->teachers);
+        $this->settings->teachers_weights =
+            array_merge($this->settings->teachers_weights, $this->teachers);
         return $this->settings;
     }
     protected function normalize(string $str) : string {
@@ -166,15 +167,22 @@ class PrologExport extends Export {
 
                 # sideeffect for $this->listTeachers()
                 # save 'used' teachers, 100 is default
-                $this->teachers[ $teacher ] = $this->settings->teachers[ $teacher ] ?? 100;
+                $this->teachers[ $teacher ] = $this->settings->teachers_weights[ $teacher ] ?? 100;
             }
             $subj_short = (preg_match("/x[0-9]+$/", reset($subj_row)[0]['id']) ? 'c':'') . $this->shortName( reset($subj_row)[0]['name'] );
             $subj_list[] = '["' . $subj_short . '", [' . implode(",\n", $id_list) . ']]';
         }
         return $subj_list;
     }
-    private function listDay() { return ['1-0', '2-0', '3-1.2', '4-1.2', '5-1.5', '6-1.6', '7-1.2', '11-0.7', '12-0.6', '13-0.6', '15-0', '16-0'];}
-    private function listWeek() { return ['mon-0.7', 'tue-1.1', 'wed-1.3', 'thu-1', 'fri-0.7'];}
+    private function listDay() {
+        $ww =& $this->settings->day_weights;
+        return array_map(function($k,$v){return "$k-$v";}, array_keys($ww), $ww);
+        //return ['1-0', '2-0', '3-1.2', '4-1.2', '5-1.5', '6-1.6', '7-1.2', '11-0.7', '12-0.6', '13-0.6', '15-0', '16-0'];
+    }
+    private function listWeek() {
+        $ww =& $this->settings->week_weights;
+        return array_map(function($k,$v){return "$k-$v";}, array_keys($ww), $ww);
+    }
     public function output($data) {
         $lsls[0] = $this->listWeek();
         $lsls[1] = $this->listDay();
@@ -189,7 +197,8 @@ class PrologExport extends Export {
 class Application {
     protected $settings;
 
-    public function __construct($argv) {
+    public function __construct() {
+        global $argv;
         fprintf(STDERR, "Running '%s'.. \n", $argv[0]);
         $this->mySettings();
           
@@ -229,7 +238,9 @@ class Application {
             'fak' => 11320,
             'skr' => 2015,
             'sem' => 1,
-            'teachers' => []
+            'day_weights' => array_combine(range(1,16,1), array_fill(0,16,1)),
+            'week_weights' => array_combine(['mon','tue','wed','thu','fri'], array_fill(0,5,1)),
+            'teachers_weights' => [],
             ];
             if ( !file_exists($FILE) ) {
                 @file_put_contents(
@@ -243,7 +254,7 @@ class Application {
                 $this->settings = (object) json_decode( $s_json, $assoc = true );
             }
         } else { #set
-            arsort($new_settings->teachers);
+            arsort($new_settings->teachers_weights);
             $this->settings = $new_settings;
             @file_put_contents(
                                $FILE,
@@ -254,7 +265,7 @@ class Application {
     }
 }
 
-    new Application($argv);
+new Application;
 
     
     

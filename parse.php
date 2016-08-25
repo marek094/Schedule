@@ -75,7 +75,7 @@ abstract class Export {
         # ová - ová --> ová-ová
         $prof_one = mb_ereg_replace("\s*-\s*",'-', $prof_one);
         $prof_one = mb_ereg_replace(",[^,]+\.,",',', $prof_one);
-        $prof_one = mb_ereg_replace(",[^,]+\.$", '', $prof_one);
+        $one      = mb_ereg_replace(",[^,]+\.$", '', $prof_one);
         /*$names = explode(', ', $prof_one);
         foreach ($names as $name) {
             # title
@@ -88,7 +88,7 @@ abstract class Export {
             $ones[] = $name;
         }
         return implode(', ', $ones);*/
-        return $prof_one;
+        return $one;
     }
     protected function shortName(string $name) : string {
         $NUM = array_flip(['I','II','III','IV','V','VI']);
@@ -120,7 +120,7 @@ abstract class Export {
         $time = (int) $time;
         $time -= 7*60+20; # 7:20
         $time /= 50;
-        # for strange times, like IPS
+        # for times like 19:19  
         $time = round($time);
         return $time;
     }
@@ -186,7 +186,7 @@ class PrologExport extends Export {
     public function output($data) {
         $lsls[0] = $this->listWeek();
         $lsls[1] = $this->listDay();
-        $lsls[3] = $this->listSubj($data); # need to run further - sideefects
+        $lsls[3] = $this->listSubj($data); # need to run further - sidefects
         $lsls[2] = $this->listTeachers();
         ksort($lsls);
         $lsstr = array_map(function($ls) {return '[' . implode(',', $ls) . ']';}, $lsls);
@@ -195,72 +195,101 @@ class PrologExport extends Export {
 }
 
 class Application {
-    protected $settings;
 
-    public function __construct() {
-        global $argv;
-        fprintf(STDERR, "Running '%s'.. \n", $argv[0]);
-        $this->mySettings();
-          
-        fprintf(STDERR, "Downloading data from 'SIS UK'..\n"); 
+    public function __construct($argv = null) {
+        static $OPTS = [
+            ['h', 'help', 'print this help'],
+            ['c', 'get-config', 'print config file \'~/.Scheduler_2.conf.json\''],
+            ['q', 'quiet', 'print only result'],
+        ];
+        
+        $opts = getopt(implode('', array_column($OPTS, 0)), array_column($OPTS, 1));
+        $opt = '';
+        foreach ($OPTS as $o) if (isset($opts[$o[0]]) || isset($opts[$o[1]]))  {$opt = $o[0]; break;}
+        
+        switch ($opt) {
+            case 'h':
+                echo "  * Scheduler *\n";
+                echo implode('', array_map(function($a){return "-$a[0] --$a[1]\t$a[2]\n";}, $OPTS));
+                echo "\n";
+                break;
+                
+            case 'c':
+                echo '~/.Scheduler_2.conf.json' . PHP_EOL;
+                echo $this->myConf();
+                break;
+         
+            case 'q':
+                $this->runApp($argv, $Q=true);
+                break;
+                
+            default:
+                $this->runApp($argv);
+        }
+    }
+    private function runApp($argv, $Q=false) {
+        if (is_null($argv)) global $argv;
+        
+        $Q or fprintf(STDERR, "Running '%s'.. \n", $argv[0]);
+        $settings = $this->mySettings();
+        $Q or fprintf(STDERR, "Downloading data from 'SIS UK'..\n");
         
         unset($argv[0]);
-        $data = $this->loadSubjects($argv);
-       
-        fprintf(STDERR, "Genering data for Prolog..\n");
-        $export = new PrologExport($this->settings);
+        $data = $this->loadSubjects($argv, $settings);
+        
+        $Q or fprintf(STDERR, "Genering data for Prolog..\n");
+        $export = new PrologExport($settings);
         $prolog = $export->output( $data );
         
-        $this->settings = $export->getSettings();
-        $this->mySettings($this->settings);
+        $settings = $export->getSettings();
+        $this->mySettings($settings);
         
-        //$prolog = $this->dataForProlog( $data );
         file_put_contents("tmpfile.txt", $prolog);
         
-        fprintf(STDERR, "Running Prolog..\n");
-        `swipl -s ./main.pl <tmpfile.txt >/dev/tty`;
+        $Q or fprintf(STDERR, "Running Prolog..\n");
+        `swipl -s ./main.pl <tmpfile.txt | tail -n+3 >/dev/tty`;
         
-        fprintf(STDERR, "The end.\n");
+        $Q or fprintf(STDERR, "The end.\n");
         //*/
     }
-    private function loadSubjects($subjs) {
+    private function loadSubjects($subjs, $settings) {
         $data = [];
         foreach ($subjs as $subjId) {
-            $proc = new Process($subjId, $this->settings);
+            $proc = new Process($subjId, $settings);
             $data = array_merge( $data, $proc->process2() );
         }
         return $data;
     }
-    private function mySettings($new_settings = null) {
+    private function myConf($cont = null) {
         $FILE = $_SERVER['HOME'] . '/.Scheduler_2.conf.json';
-        if (is_null($new_settings)) { #get
-            $this->settings = $defaults = (object) [
-            'fak' => 11320,
-            'skr' => 2015,
-            'sem' => 1,
-            'day_weights' => array_combine(range(1,16,1), array_fill(0,16,1)),
-            'week_weights' => array_combine(['mon','tue','wed','thu','fri'], array_fill(0,5,1)),
-            'teachers_weights' => [],
-            ];
-            if ( !file_exists($FILE) ) {
-                @file_put_contents(
-                                   $FILE,
-                                   json_encode($defaults, JSON_PRETTY_PRINT) . PHP_EOL
-                                   ) or fprintf(STDERR, "Error in creating config file\n");
-            } else {
-                $s_json = @file_get_contents( $FILE ) or
-                fprintf(STDERR, "Error in reading config file\n");
-                # object only on the highest level
-                $this->settings = (object) json_decode( $s_json, $assoc = true );
+        if (is_null($cont)) { #get
+            if (!file_exists($FILE)) {
+                $defaults = (object) [
+                'fak' => 11320,
+                'skr' => 2015,
+                'sem' => 1,
+                'day_weights' => array_combine(range(1,16,1), array_fill(0,16,1.0)),
+                'week_weights' => array_combine(['mon','tue','wed','thu','fri'], array_fill(0,5,1.0)),
+                'teachers_weights' => [],
+                ];
+                $this->mySettings( $defaults );
             }
+            $cont = @file_get_contents( $FILE ) or fprintf(STDERR, "Error in reading config file\n");
+            return $cont;
+        } else { #set
+            @file_put_contents( $FILE, $cont ) or fprintf(STDERR, "Error in creating config file\n");
+        }
+    }
+    private function mySettings($new_settings = null) {
+        //var_dump( $new_settings);
+        if (is_null($new_settings)) { #get
+            $s_json = $this->myConf();
+            $settings = (object) json_decode( $s_json, $assoc = true );
+            //var_dump( $s_json );
+            return $settings;
         } else { #set
             arsort($new_settings->teachers_weights);
-            $this->settings = $new_settings;
-            @file_put_contents(
-                               $FILE,
-                               json_encode($new_settings, JSON_PRETTY_PRINT) . PHP_EOL
-                               ) or fprintf(STDERR, "Error in creating config file\n");
-            //echo json_encode($new_settings, JSON_PRETTY_PRINT);
+            $this->myConf(json_encode($new_settings, JSON_PRETTY_PRINT) . PHP_EOL);
         }
     }
 }

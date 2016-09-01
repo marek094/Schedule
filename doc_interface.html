@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Prolog scheduler - user interface</title>
+        <style>
+            footer {font-size:80%; border-top: 1px solid #ccc;}
+            body {text-align: center;}
+            footer, section, header {
+                max-width:800px;
+                margin: auto;
+                text-align: left;
+            }
+        p{ text-indent: 5%;}
+            p.desc {font-style: italic;}
+            h2, h3 {border-bottom: 1px solid #ccc;}
+            h4.code, ul.code li, pre, code, var, dl.code dt, dl.var dt
+                {color: green; font-family: monospace;}
+            var, dl.var dt {font-weight: bold; font-style: normal;}
+            code i, pre i {font-family: serif; font-size: 90%;}
+            pre.console {color: white; background: black; padding: 3px;}
+            samp {color: white; background: black; font-family: monospace;}
+            dt {line-height: 1.7;}
+            dl {padding-left: 5%;}
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>Schedule parser</h1>
+            <p>User interface of <a href="doc.html">Prolog scheduler</a> parsing data from <a href="https://is.cuni.cz/studium/index.php">information system</a> of Charles University. Written in PHP7.</p> 
+            <h3>Source file</h3>
+            <ul>
+                <li><a href="#parse">parse.php</a> - parser</li>
+                <li><a href="#config">Config file</a> - configuration</li>
+            </ul>
+        </header>
+        <section>
+            <h2 id="parse">parse.php</h2>
+            <p>Usage like shell script. 
+            Example:</p>
+            <p>
+                <code>./parse.php --help</code>
+            </p>
+            <pre>
+Schedule parser
+./parse.php [-c] [-h]
+./parse.php [-q] &lt;subject_id&gt; [&lt;subject_id&gt; ...]
+
+-h --help       print this help
+-c --get-config print config file '~/.Scheduler_2.conf.json'
+-q --quiet      print only result
+            </pre>
+            <p>
+            Example 2:
+            </p>
+            <p><code>./parse.php --quiet NDMI002 NDMI050 NMAI054 NSWI120 NSWI141 NPRG030</code></p>
+            <pre>
+Runing test no. 0
+Weight: 1573.9333333333334
++------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+
+| D\H  |  1   |  2   |  3   |  4   |  5   |  6   |  7   |  8   |  9   |  10  |  11  |  12  |  13  |  14  |  15  |  16  |
++------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+
+| mon  |      |      |      |  DM  |  DM  |      |      |      |      |      |      |      |      |      |      |      |
++------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+
+| tue  |      |      |      | cDM  | cDM  |  PP  |  PP  |      |      | P I  | P I  | P I  |      |      |      |      |
++------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+
+| wed  |      |      |      |      |      | cP I | cP I |  PP  |  PP  | ÚdPS | ÚdPS |      |      |      |      |      |
++------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+
+| thu  |      |      |      |cMA I |cMA I | MA I | MA I |      |      |      |      |      |      |cÚdŘI |cÚdŘI |      |
++------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+
+| fri  |      |      |      |      |      |      |      |      |      |      |      |      |      |      |      |      |
++------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+
+
+DM	Fiala Jiří		dt(mon,4)dt(mon,5)
+cDM	Knop Dušan		dt(tue,4)dt(tue,5)
+cÚdŘI	Šámal Robert, Ph.D., Mareš Martin, Ph.D., Nešetřil Jaroslav		dt(thu,14)dt(thu,15)
+MA I	Tiwary Hans Raj		dt(thu,6)dt(thu,7)
+cMA I	Krylová Naděžda		dt(thu,4)dt(thu,5)
+PP	Ježek Pavel		dt(tue,6)dt(tue,7)dt(wed,8)dt(wed,9)
+ÚdPS	Forst Libor		dt(wed,10)dt(wed,11)
+P I	Töpfer Pavel		dt(tue,10)dt(tue,11)dt(tue,12)
+cP I	Gemrot Jakub		dt(wed,6)dt(wed,7)
+----
+
+Weight: 1573.9333333333334
++------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+
+| D\H  |  1   |  2   |  3   |  4   |  5   |  6   |  7   |  8   |  9   |  10  |  11  |  12  |  13  |  14  |  15  |  16  |
++------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+
+| mon  |      |      |      |  DM  |  DM  |      |      |      |      |      |      |      |      |      |      |      |
++------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+
+| tue  |      |      |      | cDM  | cDM  |  PP  |  PP  |      |      | P I  | P I  | P I  |      |      |      |      |
++------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+
+| wed  |      |      |      |      |      | cP I | cP I |  PP  |  PP  | ÚdPS | ÚdPS |      |      |      |      |      |
++------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+
+| thu  |      |      |      |cMA I |cMA I | MA I | MA I |      |      |      |      |      |      |cÚdŘI |cÚdŘI |      |
++------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+
+| fri  |      |      |      |      |      |      |      |      |      |      |      |      |      |      |      |      |
++------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+------+
+
+DM	Fiala Jiří		dt(mon,4)dt(mon,5)
+cDM	Musílek Jan		dt(tue,4)dt(tue,5)
+cÚdŘI	Šámal Robert, Ph.D., Mareš Martin, Ph.D., Nešetřil Jaroslav		dt(thu,14)dt(thu,15)
+MA I	Tiwary Hans Raj		dt(thu,6)dt(thu,7)
+cMA I	Krylová Naděžda		dt(thu,4)dt(thu,5)
+PP	Ježek Pavel		dt(tue,6)dt(tue,7)dt(wed,8)dt(wed,9)
+ÚdPS	Forst Libor		dt(wed,10)dt(wed,11)
+P I	Töpfer Pavel		dt(tue,10)dt(tue,11)dt(tue,12)
+cP I	Gemrot Jakub		dt(wed,6)dt(wed,7)
+----
+
+[ ... ]
+            </pre>
+        </section> 
+        <section>
+            <h2 id="config">Config file</h2>
+            <p>Config JSON file is saved as <strong>~/.Scheduler_2.conf.json</strong>. It can be changed and will be created if doesn't exist. There are both types of options weights and organization info. Print your config with <code>./parse --get-config</code>.</p>
+            <h4>Organization info</h4>
+            <p>Includes three items: <code>fak</code>, <code>sem</code>, <code>skr</code>. 
+            </p>
+            <dl>
+                <dt><i>fak</i></dt>
+                <dd>faculty SIS internal number</dd>
+                <dt><i>sem</i></dt>
+                <dd>semestr number (autumn - 1, spring - 2)</dd>
+                <dt><i>skr</i></dt>
+                <dd>number of academic year (2015/2016 - 2015)</dd>
+            </dl>
+            <h4>Weights</h4>
+            <p>In format <code>"Name" : Weight</code>. A total weight is sum of
+            weights of all teachers in current schedule each multiplied by coefficients for
+            day &amp; time of a the lesson.
+            </p>
+            <dl>
+                <dt><i>teachers_weights</i></dt>
+                <dd>Weight '100' is set as default.</dd>
+                <dt><i>day_weights</i></dt>
+                <dd>Each hour in day (1 - 16) has a positive coefficient (default: 1). </dd>
+                <dt><i>week_weights</i></dt>
+                <dd>Like <code>day_weights</code> but with week.
+                    Experiment: you can try set <code>"fri": "(-10)",</code> for free friday :-).
+                </dd>
+            </dl>
+        </section>
+        <footer>
+            <p>Semestral work, 2016 <a href="http://marekcerny.com">Marek Cerny</a>.</p>
+        </footer>
+    </body>
+</html>

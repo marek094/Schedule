@@ -209,7 +209,9 @@ class Application {
         
         switch ($opt) {
             case 'h':
-                echo "  * Scheduler *\n";
+                echo "Schedule parser\n";
+                echo "./parse.php [-c] [-h]\n";
+                echo "./parse.php [-q] <subject_id> [<subject_id> ...]\n\n";
                 echo implode('', array_map(function($a){return "-$a[0] --$a[1]\t$a[2]\n";}, $OPTS));
                 echo "\n";
                 break;

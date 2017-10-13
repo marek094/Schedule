@@ -118,7 +118,7 @@ abstract class Export {
     }
     protected function timeToLesson($time) : int {
         $time = (int) $time;
-        $time -= 7*60+20; # 7:20
+        $time -= 6*60+30; # 6:30
         $time /= 50;
         # for times like 19:19  
         $time = round($time);
@@ -197,9 +197,12 @@ class PrologExport extends Export {
 class Application {
 
     public function __construct($argv = null) {
-        static $OPTS = [
+        static $configPath = '~/.Scheduler_2.conf.json';
+        $OPTS = [
             ['h', 'help', 'print this help'],
-            ['c', 'get-config', 'print config file \'~/.Scheduler_2.conf.json\''],
+            ['c', 'get-config', 'print config file \'' . $configPath . '\''],
+            ['p', 'path-config', 'print path to config'],
+            ['P', null, 'print absolute path'],
             ['q', 'quiet', 'print only result'],
         ];
         
@@ -217,12 +220,20 @@ class Application {
                 break;
                 
             case 'c':
-                echo '~/.Scheduler_2.conf.json' . PHP_EOL;
+                echo $configPath . PHP_EOL;
                 echo $this->myConf();
                 break;
          
             case 'q':
                 $this->runApp($argv, $Q=true);
+                break;
+            
+            case 'p':
+                echo $configPath . PHP_EOL;
+                break;
+                
+            case 'P':
+                echo `cd $configPath; pwd` . PHP_EOL;
                 break;
                 
             default:
